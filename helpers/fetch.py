@@ -40,8 +40,7 @@ class AsyncFetch():
                 except Exception as e:
                     print('fetch error:', e)
                     if proxy:
-                        self.remove_proxy(proxy)
-                    return 
+                        self.remove_proxy(proxy) 
     
     async def test(self):
         async with aiohttp.ClientSession() as session:
