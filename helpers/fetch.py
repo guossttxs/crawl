@@ -35,7 +35,7 @@ class AsyncFetch():
                 proxy = ''
                 try:
                     await asyncio.sleep(random.choice([2,3,4,5]))
-                    async with session.get(url, proxy=proxy, timeout=30) as resp:
+                    async with session.get(url, timeout=30) as resp:
                         if resp.status == 200:
                             return await resp.text(encoding=None, errors='ignore')
                         return await ''
