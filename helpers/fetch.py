@@ -33,7 +33,7 @@ class AsyncFetch():
             while True:
                 proxy = self.get_proxy()
                 try:
-                    async with session.get(url, proxy=proxy) as resp:
+                    async with session.get(url, proxy=proxy, timeout=30) as resp:
                         if resp.status == 200:
                             return await resp.text(encoding=None, errors='ignore')
                         return await ''
