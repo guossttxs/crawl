@@ -28,7 +28,7 @@ class Tjd():
             if content:
                 self.parseIndustryDocument(content)
     
-    async def getComponyList(self, industrys):
+    async def getComponyList(self, industrys, maxPage):
         '''
         获取公司列表
         '''
@@ -42,17 +42,17 @@ class Tjd():
                     async with aiohttp.ClientSession(headers=self.header) as session:
                         url = srcurl
                         while True:
-                            print('start request:', url)
-                            content = await self.Fetch.fetch(session, url)
-                            companys, isEndPage = self.parseComponylist(content)
-                            if companys:
-                                self.saveCompanylist(companys, industry, category['title'])
-                                page += 1
-                                url = '{}?pn={}'.format(srcurl, page)
-                            else:
-                                break
-                            if isEndPage:
-                                break
+                            if maxPage:
+                                if page < maxPage:
+                                    print('start request:', url)
+                                    content = await self.Fetch.fetch(session, url)
+                                    companys, isEndPage = self.parseComponylist(content)
+                                    if companys:
+                                        self.saveCompanylist(companys, industry, category['title'])
+                                        page += 1
+                                        url = '{}?pn={}'.format(srcurl, page)
+                                    else:
+                                        break
                             
     def saveCompanylist(self, companys, industry, category):
         print('save {}行业 {}类别 company'.format(industry, category))

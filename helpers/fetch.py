@@ -46,7 +46,7 @@ class AsyncFetch():
     
     async def test(self):
         async with aiohttp.ClientSession() as session:
-            resp = await self.fetch(session, 'http://search.taojindi.com/list/c_1033987/?pn=3')
+            resp = await self.fetch(session, 'http://search.taojindi.com/list/c_1103/')
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(resp, ['lxml', 'xml'])
             return soup
