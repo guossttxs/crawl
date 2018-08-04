@@ -31,14 +31,19 @@ class AsyncFetch():
     
     async def fetch(self, session, url):
             while True:
-                #proxy = self.get_proxy()
-                proxy = ''
+                proxy = self.get_proxy()
                 try:
-                    await asyncio.sleep(random.choice([2,3,4,5]))
-                    async with session.get(url, timeout=30) as resp:
-                        if resp.status == 200:
-                            return await resp.text(encoding=None, errors='ignore')
-                        return await ''
+                    if proxy:
+                        async with session.get(url, timeout=10, proxy=proxy) as resp:
+                            if resp.status == 200:
+                                return await resp.text(encoding=None, errors='ignore')
+                            return await ''
+                    else:
+                        await asyncio.sleep(random.choice([2,3,4,5]))
+                        async with session.get(url, timeout=10) as resp:
+                            if resp.status == 200:
+                                return await resp.text(encoding=None, errors='ignore')
+                            return await ''
                 except Exception as e:
                     print('fetch error:', e)
                     if proxy:
