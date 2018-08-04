@@ -35,15 +35,15 @@ class Tjd():
         for industry in industrys:
             companys = self.mdb.tjd_company.find({'industry.name': industry})
             for company in companys:
-                if not company.get('name'):
+                if not company.get('name') and not company.get('getSuc'):
                     async with aiohttp.ClientSession(headers=self.header) as session:
                         while True:
                             url = company.get('url')
                             content = await self.Fetch.fetch(session, url)
                             info = self.parseCompanyInfo(content)
-                            print('company name:', info.get('name'))
-                            print('company info', info)
                             if info is not None:
+                            	print('company name:', info.get('name'))
+                            	print('company info', info)
                                 if info:
                                     has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
                                     if not has_company:
@@ -82,7 +82,11 @@ class Tjd():
                 info = soup.find(text=re.compile(value))
                 if info:
                     sinfo = info.split('：')
-                    company_info[key] = sinfo[1].strip()
+                    if len(sinfo) == 1:
+                        rinfo = sinfo[0].strip()
+                    else:
+                        rinfo = sinfo[1].strip()
+                    company_info[key] = rinfo
             address_div = soup.find('div', class_='address_line')
             address = address_div.text
             address = address.split('：')[1]
@@ -181,4 +185,4 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tjd.getCompanyInfo(['珠宝首饰']))
+    loop.run_until_complete(tjd.getCompanyInfo(['珠宝首饰', '环保']))

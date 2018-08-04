@@ -21,8 +21,10 @@ class AsyncFetch():
 
     def get_proxy(self):
         try:
-            return random.choice(self.proxyPools)
+            pool = self.get_proxy_pool()
+            return random.choice(pool)
         except Exception as e:
+            print('get proxy error:', e)
             return None
 
     def remove_proxy(self, proxy):
@@ -32,20 +34,24 @@ class AsyncFetch():
     async def fetch(self, session, url):
             while True:
                 proxy = self.get_proxy()
+                print('proxy:', proxy)
                 try:
                     if proxy:
                         async with session.get(url, timeout=10, proxy=proxy) as resp:
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
-                            return await ''
+                            return ''
                     else:
                         await asyncio.sleep(random.choice([2,3,4,5]))
                         async with session.get(url, timeout=10) as resp:
+                            print(resp.status, url)
                             if resp.status == 200:
+                                print(resp.text())
                                 return await resp.text(encoding=None, errors='ignore')
-                            return await ''
+                            return  ''
                 except Exception as e:
                     print('fetch error:', str(e))
+                    print(proxy)
                     if proxy:
                         self.remove_proxy(proxy) 
     
