@@ -36,14 +36,15 @@ class AsyncFetch():
                     if proxy:
                         async with session.get(url, timeout=10, proxy=proxy) as resp:
                             if resp.status == 200:
-                                return await resp.text(encoding=None, errors='ignore')
-                            return await ''
+                                ret = await resp.text(encoding=None, errors='ignore')
+                            ret = await ''
                     else:
                         await asyncio.sleep(random.choice([2,3,4,5]))
                         async with session.get(url, timeout=10) as resp:
                             if resp.status == 200:
-                                return await resp.text(encoding=None, errors='ignore')
-                            return await ''
+                                ret =  await resp.text(encoding=None, errors='ignore')
+                            ret = await ''
+                    return ret
                 except Exception as e:
                     print('fetch error:', e)
                     if proxy:
