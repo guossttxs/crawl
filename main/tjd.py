@@ -58,7 +58,9 @@ class Tjd():
     def parseCompanyInfo(self, content):
         company_info = {}
         soup = BeautifulSoup(content, 'lxml-xml')
-        company_name = soup.find('div', class_='name')
+        #print(soup)
+        company_name = soup.find('div', class_=re.compile('name'))
+        print(company_name)
         if company_name:
             if isinstance(company_name, str):
                 company_info['name'] = company_name
