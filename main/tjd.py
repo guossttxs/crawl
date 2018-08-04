@@ -41,6 +41,7 @@ class Tjd():
                         content = await self.Fetch.fetch(session, url)
                         info = self.parseCompanyInfo(content)
                         print('company name:', info.get('name'))
+                        print('company info', info)
                         if info:
                             has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
                             if not has_company:
@@ -51,7 +52,6 @@ class Tjd():
                                 self.mdb.tjd_company.remove(company)
                         else:
                             print(url)
-                            print(info)
                             company['getSuc'] = False
                             self.mdb.tjd_company.save(company)
 
