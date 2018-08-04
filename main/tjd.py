@@ -37,28 +37,33 @@ class Tjd():
             for company in companys:
                 if not company.get('name'):
                     async with aiohttp.ClientSession(headers=self.header) as session:
-                        url = company.get('url')
-                        content = await self.Fetch.fetch(session, url)
-                        info = self.parseCompanyInfo(content)
-                        print('company name:', info.get('name'))
-                        print('company info', info)
-                        if info:
-                            has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
-                            if not has_company:
-                                info['getSuc'] = True
-                                company.update(info)
-                                self.mdb.tjd_company.save(company)
-                            else:
-                                self.mdb.tjd_company.remove(company)
-                        else:
-                            print(url)
-                            company['getSuc'] = False
-                            self.mdb.tjd_company.save(company)
+                        while True:
+                            url = company.get('url')
+                            content = await self.Fetch.fetch(session, url)
+                            info = self.parseCompanyInfo(content)
+                            print('company name:', info.get('name'))
+                            print('company info', info)
+                            if info is not None:
+                                if info:
+                                    has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
+                                    if not has_company:
+                                        info['getSuc'] = True
+                                        company.update(info)
+                                        self.mdb.tjd_company.save(company)
+                                    else:
+                                        self.mdb.tjd_company.remove(company)
+                                else:
+                                    print(url)
+                                    company['getSuc'] = False
+                                    self.mdb.tjd_company.save(company)
+                                break
 
     def parseCompanyInfo(self, content):
         company_info = {}
         soup = BeautifulSoup(content, 'lxml-xml')
-        #print(soup)
+        title = soup.find('title').text
+        if title == '有道首页':
+            return None
         company_name = soup.find('div', class_=re.compile('name'))
         print(company_name)
         if company_name:

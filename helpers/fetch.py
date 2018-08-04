@@ -45,7 +45,7 @@ class AsyncFetch():
                                 return await resp.text(encoding=None, errors='ignore')
                             return await ''
                 except Exception as e:
-                    print('fetch error:', e)
+                    print('fetch error:', str(e))
                     if proxy:
                         self.remove_proxy(proxy) 
     
