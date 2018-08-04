@@ -35,17 +35,18 @@ class Tjd():
         for industry in industrys:
             companys = self.mdb.tjd_company.find({'industry.name': industry})
             for company in companys:
-                async with aiohttp.ClientSession(headers=self.header) as session:
-                    url = company.get('url')
-                    content = await self.Fetch.fetch(session, url)
-                    info = self.parseCompanyInfo(content)
-                    print('company name:', info.get('name'))
-                    if info:
-                        info['getSuc'] = True
-                        company.update(info)
-                    else:
-                        company['getSuc'] = False
-                    self.mdb.tjd_company.save(company)
+                if not company.get('name'):
+                    async with aiohttp.ClientSession(headers=self.header) as session:
+                        url = company.get('url')
+                        content = await self.Fetch.fetch(session, url)
+                        info = self.parseCompanyInfo(content)
+                        print('company name:', info.get('name'))
+                        if info:
+                            info['getSuc'] = True
+                            company.update(info)
+                        else:
+                            company['getSuc'] = False
+                        self.mdb.tjd_company.save(company)
 
     def parseCompanyInfo(self, content):
         company_info = {}
