@@ -28,6 +28,46 @@ class Tjd():
             if content:
                 self.parseIndustryDocument(content)
     
+    async def getCompanyInfo(self, industrys):
+        '''
+        获取公司信息
+        '''
+        for industry in industrys:
+            companys = self.mdb.tjd_company.find({'industry.name': industry})
+            for company in companys:
+                async with aiohttp.ClientSession(headers=self.header) as session:
+                    url = company.get('url')
+                    content = await self.Fetch.fetch(session, url)
+                    info = self.parseCompanyInfo(content)
+                    print('company name:', info.get('name'))
+                    if info:
+                        company.update(info)
+                        self.mdb.tjd_company.save(company)
+
+    def parseCompanyInfo(self, content):
+        company_info = {}
+        soup = BeautifulSoup(content, 'lxml-xml')
+        company_name = soup.find('div', class_='name')
+        if company_name:
+            company_info['name'] = company_name
+            compiles = {
+                'contact_name': '联系人', 
+                'tel': '电话', 
+                'mobile': '手机', 
+                'fax': '传真', 
+                'zipCode': '邮编', 
+            }
+            for key, value in compiles.items():
+                info = soup.find(text=re.compile(value))
+                if info:
+                    sinfo = info.split('：')
+                    company_info[key] = sinfo[1]
+            address_div = soup.find('div', class_='address_line')
+            address = address_div.text
+            address = address.split('：')[1]
+            company_info['address'] = address
+        return company_info
+        
     async def getComponyList(self, industrys, maxPage):
         '''
         获取公司列表
@@ -42,36 +82,24 @@ class Tjd():
                     async with aiohttp.ClientSession(headers=self.header) as session:
                         url = srcurl
                         while True:
-<<<<<<< HEAD
-                            if maxPage:
-                                if page < maxPage:
-                                    print('start request:', url)
-                                    content = await self.Fetch.fetch(session, url)
-                                    companys, isEndPage = self.parseComponylist(content)
-                                    if companys:
-                                        self.saveCompanylist(companys, industry, category['title'])
-                                        page += 1
-                                        url = '{}?pn={}'.format(srcurl, page)
-                                    else:
-                                        break
-=======
-                            print('start request:', url)
-                            content = await self.Fetch.fetch(session, url)
-                            companys, isEndPage = self.parseComponylist(content)
-                            if companys:
-                                self.saveCompanylist(companys, industry, category['title'])
-                                page += 1
-                                url = '{}?pn={}'.format(srcurl, page)
-                            else:
-                                break
->>>>>>> 655c701087860190e9ce70456fc60e41d77133dc
+                            if not maxPage or page < maxPage:
+                                print('start request:', url)
+                                content = await self.Fetch.fetch(session, url)
+                                companys, isEndPage = self.parseComponylist(content)
+                                if companys:
+                                    self.saveCompanylist(companys, industry, category['title'], page)
+                                    page += 1
+                                    url = '{}?pn={}'.format(srcurl, page)
+                                else:
+                                    break
                             
-    def saveCompanylist(self, companys, industry, category):
+    def saveCompanylist(self, companys, industry, category, page):
         print('save {}行业 {}类别 company'.format(industry, category))
         for company in companys:
             company['industry'] = {
                 'name': industry,
-                'category': category
+                'category': category,
+                'pageNum': page
             }
             if not self.mdb.tjd_company.find_one({'url': company.get('url')}):
                 self.mdb.tjd_company.save(company)
@@ -92,11 +120,10 @@ class Tjd():
         nextPage = soup.find('a', '下一页')
         if not nextPage:
             isEndPage = True
-        print(len(companys), isEndPage)
         return companys, isEndPage
     
     def parseIndustryDocument(self, content):
-        soup = BeautifulSoup(content, ['lxml', 'xml'])
+        soup = BeautifulSoup(content, 'lxml-xml')
         dd = soup.find_all('dd')
         for d in dd:
             parent_d = d.find_previous_sibling('dt')
@@ -133,4 +160,4 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tjd.getComponyList(['环保']))
+    loop.run_until_complete(tjd.getComponyList(['珠宝首饰'], 1000))
