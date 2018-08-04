@@ -82,7 +82,7 @@ class Tjd():
                 info = soup.find(text=re.compile(value))
                 if info:
                     sinfo = info.split('：')
-                    company_info[key] = sinfo[1]
+                    company_info[key] = sinfo[1].strip()
             address_div = soup.find('div', class_='address_line')
             address = address_div.text
             address = address.split('：')[1]
