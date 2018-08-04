@@ -61,8 +61,8 @@ class Tjd():
     def parseCompanyInfo(self, content):
         company_info = {}
         soup = BeautifulSoup(content, 'lxml-xml')
-        title = soup.find('title').text
-        if title == '有道首页':
+        title = soup.find(text=re.compile('有道首页'))
+        if title:
             return None
         company_name = soup.find('div', class_=re.compile('name'))
         print(company_name)
