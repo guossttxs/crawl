@@ -53,7 +53,10 @@ class Tjd():
         soup = BeautifulSoup(content, 'lxml-xml')
         company_name = soup.find('div', class_='name')
         if company_name:
-            company_info['name'] = company_name
+            if isinstance(company_name, str):
+                company_info['name'] = company_name
+            else:
+                company_info['name'] = company_name.text
             compiles = {
                 'contact_name': '联系人', 
                 'tel': '电话', 
