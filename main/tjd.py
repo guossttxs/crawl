@@ -163,4 +163,4 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tjd.getComponyList(['珠宝首饰'], 1000))
+    loop.run_until_complete(tjd.getCompanyInfo(['珠宝首饰']))
