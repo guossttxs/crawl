@@ -51,8 +51,6 @@ class Tjd():
                                 url = '{}?pn={}'.format(srcurl, page)
                             else:
                                 break
-                            if isEndPage:
-                                break
                             
     def saveCompanylist(self, companys, industry, category):
         print('save {}行业 {}类别 company'.format(industry, category))
@@ -65,7 +63,7 @@ class Tjd():
                 self.mdb.tjd_company.save(company)
 
     def parseComponylist(self, content):
-        soup = BeautifulSoup(content, ['lxml', 'xml'])
+        soup = BeautifulSoup(content, 'lxml-xml')
         #print(soup)
         clis = soup.find_all('a', href=re.compile('product/\w*.html'))
         companys = []
@@ -80,6 +78,7 @@ class Tjd():
         nextPage = soup.find('a', '下一页')
         if not nextPage:
             isEndPage = True
+        print(len(companys), isEndPage)
         return companys, isEndPage
     
     def parseIndustryDocument(self, content):
@@ -120,4 +119,4 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tjd.getComponyList(['珠宝首饰']))
+    loop.run_until_complete(tjd.getComponyList(['环保']))
