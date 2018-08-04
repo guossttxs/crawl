@@ -41,8 +41,11 @@ class Tjd():
                     info = self.parseCompanyInfo(content)
                     print('company name:', info.get('name'))
                     if info:
+                        info['getSuc'] = True
                         company.update(info)
-                        self.mdb.tjd_company.save(company)
+                    else:
+                        company['getSuc'] = False
+                    self.mdb.tjd_company.save(company)
 
     def parseCompanyInfo(self, content):
         company_info = {}
