@@ -112,21 +112,13 @@ class Tjd():
                                 content = await self.Fetch.fetch(session, url)
                                 companys, isEndPage = self.parseComponylist(content)
                                 if companys:
-                                    self.saveCompanylist(companys, industry, category['title'], page)
+                                    await self.saveCompanylist(companys, industry, category['title'], page)
                                     page += 1
                                     url = '{}?pn={}'.format(srcurl, page)
                                 else:
                                     break
 
-    def fetchCompanyInfo(self, url):
-        async with aiohttp.ClientSession(headers=self.header) as session:
-            while True:
-                content = await self.Fetch.fetch(session, url)
-                info = self.parseCompanyInfo(content)
-                if info is not None:
-                    return info
-
-    def saveCompanylist(self, companys, industry, category, page):
+    async def saveCompanylist(self, companys, industry, category, page):
         print('save {}行业 {}类别 company'.format(industry, category))
         for company in companys:
             company['industry'] = {
@@ -136,18 +128,23 @@ class Tjd():
             }
             url = company.get('url')
             if not self.mdb.tjd_company.find_one({'url': url}):
-                info = self.fetchCompanyInfo(url)
-                if info:
-                    has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
-                    if not has_company:
-                        info['getSuc'] = True
-                        company.update(info)
-                        self.mdb.tjd_company.save(company)
-                    else:
-                        self.mdb.tjd_company.remove(company)
-                else:
-                    company['getSuc'] = False
-                    self.mdb.tjd_company.save(company)
+                async with aiohttp.ClientSession(headers=self.header) as session:
+                    while True:
+                        content = await self.Fetch.fetch(session, url)
+                        info = self.parseCompanyInfo(content)
+                        if info is not None:
+                            if info:
+                                has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
+                                if not has_company:
+                                    info['getSuc'] = True
+                                    company.update(info)
+                                    self.mdb.tjd_company.save(company)
+                                else:
+                                    self.mdb.tjd_company.remove(company)
+                            else:
+                                company['getSuc'] = False
+                                self.mdb.tjd_company.save(company)
+                            break
             
     def parseComponylist(self, content):
         soup = BeautifulSoup(content, 'lxml-xml')
