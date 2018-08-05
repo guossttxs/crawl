@@ -42,8 +42,8 @@ class Tjd():
                             content = await self.Fetch.fetch(session, url)
                             info = self.parseCompanyInfo(content)
                             if info is not None:
-                                print('company name:', info.get('name'))
-                                print('company info', info)
+                            	print('company name:', info.get('name'))
+                            	print('company info', info)
                                 if info:
                                     has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
                                     if not has_company:
@@ -61,13 +61,16 @@ class Tjd():
     def parseCompanyInfo(self, content):
         company_info = {}
         soup = BeautifulSoup(content, 'lxml-xml')
+        title = soup.find(text=re.compile('有道首页'))
+        if title:
+            return None
         company_name = soup.find('div', class_=re.compile('name'))
         print(company_name)
         if company_name:
             if isinstance(company_name, str):
-                company_info['name'] = company_name
+                company_info['name'] = company_name.strip()
             else:
-                company_info['name'] = company_name.text
+                company_info['name'] = company_name.text.strip()
             compiles = {
                 'contact_name': '联系人', 
                 'tel': '电话', 
@@ -114,7 +117,15 @@ class Tjd():
                                     url = '{}?pn={}'.format(srcurl, page)
                                 else:
                                     break
-                            
+
+    def fetchCompanyInfo(self, url):
+        async with aiohttp.ClientSession(headers=self.header) as session:
+            while True:
+                content = await self.Fetch.fetch(session, url)
+                info = self.parseCompanyInfo(content)
+                if info is not None:
+                    return info
+
     def saveCompanylist(self, companys, industry, category, page):
         print('save {}行业 {}类别 company'.format(industry, category))
         for company in companys:
@@ -123,9 +134,21 @@ class Tjd():
                 'category': category,
                 'pageNum': page
             }
-            if not self.mdb.tjd_company.find_one({'url': company.get('url')}):
-                self.mdb.tjd_company.save(company)
-
+            url = company.get('url')
+            if not self.mdb.tjd_company.find_one({'url': url}):
+                info = self.fetchCompanyInfo(url)
+                if info:
+                    has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
+                    if not has_company:
+                        info['getSuc'] = True
+                        company.update(info)
+                        self.mdb.tjd_company.save(company)
+                    else:
+                        self.mdb.tjd_company.remove(company)
+                else:
+                    company['getSuc'] = False
+                    self.mdb.tjd_company.save(company)
+            
     def parseComponylist(self, content):
         soup = BeautifulSoup(content, 'lxml-xml')
         #print(soup)
@@ -182,4 +205,5 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tjd.getCompanyInfo(['珠宝首饰', '环保']))
+    tasks = [tjd.getCompanyInfo(['珠宝首饰', '环保']), tjd.getComponyList(['安防'])]
+    loop.run_until_complete(asyncio.wait(tasks))
