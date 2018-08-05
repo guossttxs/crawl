@@ -42,8 +42,8 @@ class Tjd():
                             content = await self.Fetch.fetch(session, url)
                             info = self.parseCompanyInfo(content)
                             if info is not None:
-                            	print('company name:', info.get('name'))
-                            	print('company info', info)
+                                print('company name:', info.get('name'))
+                                print('company info', info)
                                 if info:
                                     has_company = self.mdb.tjd_company.find_one({'name': info.get('name')})
                                     if not has_company:
