@@ -1,5 +1,6 @@
 #codinf: utf-8
 
+import requests
 import asyncio
 import aiohttp
 import random
@@ -30,14 +31,23 @@ class AsyncFetch():
     def remove_proxy(self, proxy):
         self.redisdb.lrem('ips', 1, proxy.split('://')[1])
         self.proxyPools.remove(proxy)
-    
+
+    def get_new_proxy(self):
+        return requests.get("http://127.0.0.1:5010/get/").content
+
+    def del_new_proxy(self, proxy):
+        requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))    
+   
     async def fetch(self, session, url):
             while True:
-                proxy = self.get_proxy()
+                proxy = self.get_new_proxy()
+                proxy = proxy.decode()
+                if proxy.startswith('no'):
+                    proxy=''
                 print('proxy:', proxy)
                 try:
                     if proxy:
-                        async with session.get(url, timeout=10, proxy=proxy) as resp:
+                        async with session.get(url, timeout=10, proxy='http://{}'.format(proxy)) as resp:
                             print(resp.status, url)
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
@@ -47,14 +57,13 @@ class AsyncFetch():
                         async with session.get(url, timeout=10) as resp:
                             print(resp.status, url)
                             if resp.status == 200:
-                                print(resp.text())
                                 return await resp.text(encoding=None, errors='ignore')
                             return  ''
                 except Exception as e:
                     print('fetch error:', str(e))
                     print(proxy)
                     if proxy:
-                        self.remove_proxy(proxy) 
+                        self.del_new_proxy(proxy) 
     
     async def test(self):
         async with aiohttp.ClientSession() as session:
