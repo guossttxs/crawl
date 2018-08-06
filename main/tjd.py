@@ -33,7 +33,7 @@ class Tjd():
         获取公司信息
         '''
         for industry in industrys:
-            companys = self.mdb.tjd_company.find({'industry.name': industry})
+            companys = self.mdb.tjd_company.find({'industry.name': industry}, no_cursor_timeout=True)
             for company in companys:
                 if not company.get('name') and not company.get('getSuc'):
                     async with aiohttp.ClientSession(headers=self.header) as session:
@@ -103,7 +103,13 @@ class Tjd():
                 categorys = industry_obj.get('category')
                 for category in categorys:
                     srcurl = category.get('href')
-                    page = 1
+                    company = self.mdb.tjd_company.find({'industry.category': category})
+                    if not company:
+                        page = 1
+                    else:
+                        end_company = company.skip(company.count()-1).limit(1)
+                        page = end_company.get('industry').get('pageNum')
+                        page = page if page else 1
                     async with aiohttp.ClientSession(headers=self.header) as session:
                         url = srcurl
                         while True:
@@ -202,5 +208,5 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    tasks = [tjd.getCompanyInfo(['珠宝首饰', '环保']), tjd.getComponyList(['安防'])]
+    tasks = [tjd.getCompanyInfo(['珠宝首饰', '环保']), tjd.getComponyList(['安防'], 1000)]
     loop.run_until_complete(asyncio.wait(tasks))
