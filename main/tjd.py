@@ -257,7 +257,7 @@ if __name__ == '__main__':
     tjd = Tjd()
     industrys_obj = mdb.tjd_industry.find()
     has_save_industry = ['珠宝首饰', '环保', '安防']
-    industrys = [industry.get('industry') for industry in industrys_obj if industry not in has_save_industry]
+    industrys = [industry.get('industry') for industry in industrys_obj if industry.get('industry') not in has_save_industry]
     loop = asyncio.get_event_loop()
     tasks = [tjd.getComponyList(industrys, 1000)]
     loop.run_until_complete(asyncio.wait(tasks))
