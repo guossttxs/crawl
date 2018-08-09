@@ -107,7 +107,7 @@ class Tjd():
                 for category in categorys:
                     srcurl = category.get('href')
                     company = self.mdb.tjd_company.find({'industry.category': category})
-                    if not company:
+                    if not company.count():
                         page = 1
                     else:
                         if company.count() == 1:
