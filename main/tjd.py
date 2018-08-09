@@ -3,8 +3,11 @@
 import re
 import os
 import sys
+import xlwt
+import xlrd
 import asyncio
 import aiohttp
+from xlutils.copy import copy
 from bs4 import BeautifulSoup
 from ..plugin import mdb, rdb
 from ..cfgs import tjd_cfg
@@ -107,7 +110,10 @@ class Tjd():
                     if not company:
                         page = 1
                     else:
-                        end_company = company.skip(company.count()-1).limit(1)
+                        if company.count() == 1:
+                            end_company = company[0]
+                        else:
+                            end_company = company.skip(company.count()-1).limit(1)
                         page = end_company.get('industry').get('pageNum')
                         page = page if page else 1
                     async with aiohttp.ClientSession(headers=self.header) as session:
@@ -205,8 +211,51 @@ class Tjd():
                 else:
                     print('已存在，跳过')
 
+    def init_excel_file(self, filename):
+        titles = ['公司', '行业', '联系人', '联系电话', '手机', '地址']
+        if not os.path.isfile(filename):
+            wb = xlwt.Workbook(encoding='utf-8')
+            sheet_name = 'tjd'
+            sheet_obj = wb.add_sheet(sheet_name, cell_overwrite_ok=True)
+            for i, v in enumerate(titles):
+                sheet_obj.write(0, i, v)
+            wb.save(filename)
+
+    def saveToExcel(self):
+        '''
+        存到execl文件
+        compiles = {
+            'contact_name': '联系人', 
+            'tel': '电话', 
+            'mobile': '手机', 
+            'fax': '传真', 
+            'zipCode': '邮编', 
+        }
+        '''
+        root = '/Users/guoss/Desktop/'
+        filename = '{}tjd.xls'.format(root)
+        self.init_excel_file(filename)
+        companys = self.mdb.tjd_company.find({'getSuc': True})
+        rb = xlrd.open_workbook(filename, formatting_info=True)
+        wb = copy(rb)
+        wsheet = wb.get_sheet(0)
+        for index, company in enumerate(companys):
+            col_data = [
+                company.get('name'), 
+                company.get('industry').get('name'),
+                company.get('contact_name'),
+                company.get('tel'),
+                company.get('mobile'),
+                company.get('address')
+            ]
+            for j, col in enumerate(col_data):
+                wsheet.write(index, j, col)
+        wb.save(filename)
+
+
 if __name__ == '__main__':
     tjd = Tjd()
-    loop = asyncio.get_event_loop()
-    tasks = [tjd.getCompanyInfo(['珠宝首饰', '环保']), tjd.getComponyList(['安防'], 1000)]
-    loop.run_until_complete(asyncio.wait(tasks))
+    # loop = asyncio.get_event_loop()
+    # tasks = [tjd.getCompanyInfo(['珠宝首饰', '环保']), tjd.getComponyList(['安防'], 1000)]
+    # loop.run_until_complete(asyncio.wait(tasks))
+    tjd.saveToExcel()
