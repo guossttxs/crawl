@@ -132,7 +132,8 @@ class Tjd():
                                 if companys:
                                     await self.saveCompanylist(companys, industry, category['title'], page)
                                     page += 1
-                                    url = '{}?pn={}'.format(srcurl, page)
+                                    #url = '{}?pn={}'.format(srcurl, page)
+                                    url = '{}&st=sl&pn={}'.format(srcurl, page)
                                 else:
                                     break
 
@@ -242,12 +243,12 @@ class Tjd():
                 'category': cls_href
             }
             print(document['industry'])
-            # industry_obj = self.mdb.tjd_industry.find_one({'industry': industry})
-            # if not industry_obj:
-            #     self.mdb.tjd_industry.save(document)
-            #     print('保存成功')
-            # else:
-            #     print('已存在，跳过')
+            industry_obj = self.mdb.tjd_industry.find_one({'industry': industry})
+            if not industry_obj:
+                self.mdb.tjd_industry.save(document)
+                print('保存成功')
+            else:
+                print('已存在，跳过')
 
     def init_excel_file(self, filename):
         titles = ['公司', '行业', '联系人', '联系电话', '手机', '地址']
@@ -294,7 +295,7 @@ class Tjd():
 if __name__ == '__main__':
     tjd = Tjd()
     loop = asyncio.get_event_loop()
-    #tasks = [tjd.getComponyList(industrys, 1000)]
-    tasks = [tjd.getXuMuyeIndustry()]
+    tasks = [tjd.getComponyList(['畜牧业'], 1000)]
+    #tasks = [tjd.getXuMuyeIndustry()]
     loop.run_until_complete(asyncio.wait(tasks))
     #tjd.saveToExcel()
