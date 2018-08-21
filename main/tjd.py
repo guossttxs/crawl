@@ -219,7 +219,9 @@ class Tjd():
 
     def parseXMYDocument(self, content):
         soup = BeautifulSoup(content, 'lxml-xml')
-        dd = soup.find('div', _class="bd")
+        print(soup.title)
+        dd = soup.find_all('div', class_="bd")
+        dd = dd[0]
         lis = dd.find_all('li')
         for l in lis:
             industry = l.find('p').text
