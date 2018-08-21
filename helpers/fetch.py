@@ -51,14 +51,16 @@ class AsyncFetch():
                             print(resp.status, url)
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
-                            return ''
+                            else if resp.status == 404:
+                                return ''
                     else:
                         await asyncio.sleep(random.choice([2,3,4,5]))
                         async with session.get(url, timeout=10) as resp:
                             print(resp.status, url)
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
-                            return  ''
+                            else if resp.status == 404:
+                                return  ''
                 except Exception as e:
                     print('fetch error:', str(e))
                     print(proxy)
