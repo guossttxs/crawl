@@ -31,6 +31,12 @@ class Tjd():
             if content:
                 self.parseIndustryDocument(content)
     
+    async def getXuMuyeIndustry(self):
+        async with aiohttp.ClientSession(headers=self.header) as session:
+            content = await self.Fetch.fetch(session, self.cfg.xumuye_page)
+            if content:
+                self.parseXMYDocument(content)
+    
     async def getCompanyInfo(self, industrys):
         '''
         获取公司信息
@@ -95,7 +101,7 @@ class Tjd():
             address = address.split('：')[1]
             company_info['address'] = address
         return company_info
-        
+
     async def getComponyList(self, industrys, maxPage):
         '''
         获取公司列表
@@ -211,6 +217,36 @@ class Tjd():
                 else:
                     print('已存在，跳过')
 
+    def parseXMYDocument(self, content):
+        soup = BeautifulSoup(content, 'lxml-xml')
+        dd = soup.find('div', _class="bd")
+        lis = dd.find_all('li')
+        for l in lis:
+            industry = l.find('p').text
+            industry = industry.split(' ')[1]
+            cls_href = []
+            cls_a = l.find_all('a')
+            for i in cls_a:
+                title = i.text
+                href = i.get('href')
+                cls_href.append({
+                    'title': title,
+                    'href': href,
+                    'isEnd': False
+                })
+            document = {
+                'industry': industry,
+                'url': '',
+                'category': cls_href
+            }
+            print(document['industry'])
+            # industry_obj = self.mdb.tjd_industry.find_one({'industry': industry})
+            # if not industry_obj:
+            #     self.mdb.tjd_industry.save(document)
+            #     print('保存成功')
+            # else:
+            #     print('已存在，跳过')
+
     def init_excel_file(self, filename):
         titles = ['公司', '行业', '联系人', '联系电话', '手机', '地址']
         if not os.path.isfile(filename):
@@ -255,10 +291,8 @@ class Tjd():
 
 if __name__ == '__main__':
     tjd = Tjd()
-    industrys_obj = mdb.tjd_industry.find()
-    has_save_industry = ['珠宝首饰', '环保', '安防']
-    industrys = [industry.get('industry') for industry in industrys_obj if industry.get('industry') not in has_save_industry]
     loop = asyncio.get_event_loop()
-    tasks = [tjd.getComponyList(industrys, 1000)]
+    #tasks = [tjd.getComponyList(industrys, 1000)]
+    tasks = [tjd.getXuMuyeIndustry()]
     loop.run_until_complete(asyncio.wait(tasks))
     #tjd.saveToExcel()
