@@ -100,6 +100,7 @@ class Tjd():
             address = address_div.text
             address = address.split('：')[1]
             company_info['address'] = address
+        print('company info:', company_info)
         return company_info
 
     async def getComponyList(self, industrys, maxPage):
@@ -168,7 +169,7 @@ class Tjd():
     def parseComponylist(self, content):
         #soup = BeautifulSoup(content, 'lxml-xml')
         soup = BeautifulSoup(content, 'lxml')
-        #print(soup)
+        print(soup.title)
         clis = soup.find_all('a', href=re.compile('product/\w*.html'))
         companys = []
         urls = []
@@ -184,6 +185,7 @@ class Tjd():
         nextPage = soup.find('a', '下一页')
         if not nextPage:
             isEndPage = True
+        print('companys url:', companys)
         return companys, isEndPage
     
     def parseIndustryDocument(self, content):
