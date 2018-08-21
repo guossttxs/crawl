@@ -51,7 +51,7 @@ class AsyncFetch():
                             print(resp.status, url)
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
-                            else if resp.status == 404:
+                            elif resp.status == 404:
                                 return ''
                     else:
                         await asyncio.sleep(random.choice([2,3,4,5]))
@@ -59,7 +59,7 @@ class AsyncFetch():
                             print(resp.status, url)
                             if resp.status == 200:
                                 return await resp.text(encoding=None, errors='ignore')
-                            else if resp.status == 404:
+                            elif resp.status == 404:
                                 return  ''
                 except Exception as e:
                     print('fetch error:', str(e))
