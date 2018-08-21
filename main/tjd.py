@@ -166,17 +166,20 @@ class Tjd():
                             break
             
     def parseComponylist(self, content):
-        soup = BeautifulSoup(content, 'lxml-xml')
+        #soup = BeautifulSoup(content, 'lxml-xml')
+        soup = BeautifulSoup(content, 'lxml')
         #print(soup)
         clis = soup.find_all('a', href=re.compile('product/\w*.html'))
         companys = []
+        urls = []
         for cli in clis:
             href = cli.get('href')
             document = {
                 'url': href,
             }
-            companys.append(document)
-        
+            if href not in urls:
+                companys.append(document)
+                urls.append(href)
         isEndPage = False
         nextPage = soup.find('a', '下一页')
         if not nextPage:
