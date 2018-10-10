@@ -107,6 +107,9 @@ class Tjd():
         '''
         获取公司列表
         '''
+        if not industrys:
+            industrys = self.mdb.tjd_industry.find({}, {'industry': 1})
+            industrys = [i.get('industry') for i in industrys]
         for industry in industrys:
             industry_obj = self.mdb.tjd_industry.find_one({'industry': industry})
             if industry_obj:
@@ -299,8 +302,8 @@ class Tjd():
 
 if __name__ == '__main__':
     tjd = Tjd()
-    loop = asyncio.get_event_loop()
-    tasks = [tjd.getComponyList(['畜牧业'], 1000)]
+    #loop = asyncio.get_event_loop()
+    #tasks = [tjd.getComponyList(['畜牧业'], 1000)]
     #tasks = [tjd.getXuMuyeIndustry()]
-    loop.run_until_complete(asyncio.wait(tasks))
-    #tjd.saveToExcel()
+    #loop.run_until_complete(asyncio.wait(tasks))
+    tjd.saveToExcel()
